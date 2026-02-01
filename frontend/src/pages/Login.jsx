@@ -1,22 +1,15 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-// import { supabase } from '../services/supabaseClient'; // No longer needed directly here
 
 const Login = () => {
     const { login } = useAuth();
     const [email, setEmail] = useState('demo@neurcall.ai');
     const [password, setPassword] = useState('demo123');
-    const [isRegister, setIsRegister] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     const handleAuth = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError('');
-
-        // Simulating network delay for realism
         setTimeout(() => {
             login(email);
             setLoading(false);
@@ -24,53 +17,56 @@ const Login = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-neur-dark bg-grid-slate-800/[0.2]">
-            <div className="bg-neur-panel p-8 rounded-xl shadow-2xl w-96 border border-slate-700 backdrop-blur-sm">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">NeurCall</h2>
-                    <p className="text-slate-400 text-sm mt-2">Intelligent Telephony Middleware</p>
+        <div className="flex items-center justify-center min-h-screen relative overflow-hidden">
+            {/* Background Decor */}
+            <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-violet-300/20 rounded-full blur-[100px]"></div>
+            <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-cyan-300/20 rounded-full blur-[100px]"></div>
+
+            <div className="neur-panel p-10 w-[420px] relative z-10 backdrop-blur-xl bg-white/80">
+                <div className="text-center mb-10">
+                    <div className="inline-flex items-center gap-2 mb-2">
+                        {/* Logo Icon */}
+                        <svg className="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                        <h1 className="text-3xl font-bold tracking-tight text-slate-800">NeurCall</h1>
+                    </div>
                 </div>
 
-                {/* Warning for Demo Mode */}
-                <div className="bg-blue-500/20 text-blue-300 p-2 mb-4 rounded text-xs text-center border border-blue-500/30">
-                    Demo Mode Active: Click "Connect" to enter.
+                <div className="bg-violet-50 text-violet-600 px-4 py-2 rounded-lg text-xs text-center mb-6 border border-violet-100">
+                    Demo Mode Active
                 </div>
-
-                {error && <div className="bg-red-500/20 text-red-400 p-3 mb-4 rounded-lg text-sm text-center">{error}</div>}
 
                 <form onSubmit={handleAuth} className="space-y-5">
-                    <div>
+                    <div className="space-y-1">
+                        <label className="text-xs font-semibold text-slate-400 ml-1 uppercase">Email Address</label>
                         <input
                             type="email"
-                            placeholder="Corporate Email"
-                            className="w-full bg-slate-900/50 border border-slate-600 rounded-lg p-3 text-white focus:border-neur-accent outline-none focus:ring-1 focus:ring-neur-accent transition"
+                            className="neur-input"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            required
                         />
                     </div>
-                    <div>
+                    <div className="space-y-1">
+                        <label className="text-xs font-semibold text-slate-400 ml-1 uppercase">Password</label>
                         <input
                             type="password"
-                            placeholder="Password"
-                            className="w-full bg-slate-900/50 border border-slate-600 rounded-lg p-3 text-white focus:border-neur-accent outline-none focus:ring-1 focus:ring-neur-accent transition"
+                            className="neur-input"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            required
                         />
                     </div>
-                    <button
-                        disabled={loading}
-                        className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-500/20 transition transform active:scale-95"
-                    >
-                        {loading ? 'Entering System...' : 'Connect'}
+
+                    <button disabled={loading} className="neur-btn-primary mt-4">
+                        {loading ? 'Authenticating...' : 'Login'}
                     </button>
+
+                    <div className="flex justify-between text-xs text-slate-400 mt-4 px-1">
+                        <span className="cursor-pointer hover:text-violet-500">Forgot Password?</span>
+                        <span className="cursor-pointer hover:text-violet-500">Sign Up</span>
+                    </div>
                 </form>
 
-                <div className="mt-6 text-center text-xs text-slate-500">
-                    <button onClick={() => setIsRegister(!isRegister)} className="hover:text-cyan-400 underline opacity-50 cursor-not-allowed" title="Disabled in Demo">
-                        {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}
-                    </button>
+                <div className="mt-8 text-center">
+                    <p className="text-[10px] text-slate-300 uppercase tracking-widest">Powered by NeurCall</p>
                 </div>
             </div>
         </div>

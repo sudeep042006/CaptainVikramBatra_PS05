@@ -1,38 +1,45 @@
-import WebSocket from 'ws';
+import { SarvamAIClient } from 'sarvamai';
 import { ENV } from '../../config/env.js';
 import { logger } from '../../utils/logger.js';
 
-export const createSarvamConnection = (onMessage, onClose) => {
+export const createSarvamConnection = async (onMessage, onClose) => {
     try {
-        const sarvamWs = new WebSocket(ENV.SARVAM_WS_URL);
-
-        sarvamWs.on('open', () => {
-            logger.info('Connected to Sarvam AI STT Service');
+        const client = new SarvamAIClient({
+            apiSubscriptionKey: ENV.SARVAM_API
         });
 
-        sarvamWs.on('message', (data) => {
-            try {
-                const parsed = JSON.parse(data);
-                // Adjust property based on real Sarvam API spec (usually 'transcript' or 'channel_0')
-                // Assuming { transcript: "Hello", is_final: true/false }
-                onMessage(parsed);
-            } catch (err) {
-                // logger.error('Error parsing Sarvam msg', err);
-            }
+        console.log('🔌 Connecting to Sarvam SDK with key:', ENV.SARVAM_API ? `${ENV.SARVAM_API.slice(0, 5)}...` : 'MISSING');
+
+        // Connect using the Streaming Client
+        const socket = await client.speechToTextStreaming.connect({
+            "language-code": "en-IN",
+            model: "saarika:v2.5",
+            sample_rate: 8000,
+            input_audio_codec: "pcm"
         });
 
-        sarvamWs.on('error', (err) => {
-            logger.error('Sarvam WS Error', err);
+        socket.on('open', () => {
+            console.log('✅ Sarvam SDK Connected');
         });
 
-        sarvamWs.on('close', () => {
-            logger.info('Sarvam Connection Closed');
+        socket.on('message', (data) => {
+            // SDK passes parsed object
+            onMessage(data);
+        });
+
+        socket.on('error', (err) => {
+            console.error('❌ Sarvam SDK Error:', err);
+        });
+
+        socket.on('close', () => {
+            console.log('Sarvam SDK Connection Closed');
             if (onClose) onClose();
         });
 
-        return sarvamWs;
+        return socket;
+
     } catch (error) {
-        logger.error('Failed to create Sarvam connection', error);
-        return null;
+        console.error('❌ Failed to create Sarvam SDK connection:', error);
+        return null; // Return null so streamService knows it failed
     }
 };
