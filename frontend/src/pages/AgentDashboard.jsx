@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSocket } from '../context/SocketContext';
+import { fetchDashboardStats } from '../services/api';
 import Layout from '../components/Layout/Layout';
 import LiveTranscript from '../components/Dashboard/LiveTranscript';
 import InsightCard from '../components/Dashboard/InsightCard';
@@ -10,17 +11,48 @@ const AgentDashboard = () => {
     const [insight, setInsight] = useState(null);
     const [callStatus, setCallStatus] = useState('idle');
     const [timer, setTimer] = useState(10);
+    const [stats, setStats] = useState({
+        totalCalls: 0,
+        agentsOnline: 0,
+        avgDuration: '0m 0s',
+        sentiment: 'Neutral'
+    });
 
-    // Socket Logic (Keep similar logic to before but wrapped in Layout)
+    // Fetch Stats on Mount
+    useEffect(() => {
+        const loadStats = async () => {
+            const data = await fetchDashboardStats();
+            if (data) {
+                // Determine dominant sentiment or just use mock for now if aggregation not ready
+                setStats({
+                    totalCalls: data.totalCalls || 0,
+                    agentsOnline: data.agentsOnline || 1,
+                    avgDuration: '3m 12s', // Mock or calculate from data if available
+                    sentiment: 'Positive' // Placeholder logic
+                });
+            }
+        };
+        loadStats();
+    }, []);
+
+    // Socket Logic
     useEffect(() => {
         if (!socket) return;
+
         socket.on('transcript', (data) => {
             if (callStatus === 'idle') setCallStatus('active');
-            setTranscripts(prev => [...prev, { sender: 'user', ...data }]);
+            // Handle both string and object data types from backend
+            const text = typeof data === 'string' ? data : data.text;
+            setTranscripts(prev => [...prev, { sender: 'user', text, timestamp: new Date() }]);
         });
+
         socket.on('insight', (data) => {
+            console.log("Insight Received:", data);
             setInsight(data);
         });
+
+        // Optional: Listen for call ended event
+
         return () => {
             socket.off('transcript');
             socket.off('insight');
@@ -51,15 +83,15 @@ const AgentDashboard = () => {
                 <div className="grid grid-cols-4 gap-4 mb-8">
                     <div className="bg-neur-panel border border-slate-700 p-4 rounded-lg">
                         <h4 className="text-slate-400 text-sm">Calls Today</h4>
-                        <p className="text-2xl font-bold text-white">42</p>
+                        <p className="text-2xl font-bold text-white">{stats.totalCalls}</p>
                     </div>
                     <div className="bg-neur-panel border border-slate-700 p-4 rounded-lg">
                         <h4 className="text-slate-400 text-sm">Avg Duration</h4>
-                        <p className="text-2xl font-bold text-white">3m 12s</p>
+                        <p className="text-2xl font-bold text-white">{stats.avgDuration}</p>
                     </div>
                     <div className="bg-neur-panel border border-slate-700 p-4 rounded-lg">
                         <h4 className="text-slate-400 text-sm">Sentiment</h4>
-                        <p className="text-2xl font-bold text-green-400">Positive</p>
+                        <p className="text-2xl font-bold text-green-400">{stats.sentiment}</p>
                     </div>
                     <div className="bg-neur-panel border border-slate-700 p-4 rounded-lg">
                         <h4 className="text-slate-400 text-sm">Status</h4>

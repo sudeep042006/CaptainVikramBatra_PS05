@@ -20,10 +20,20 @@ export const handleMediaStream = (ws, req) => {
                 // 1. Emit Text
                 io.emit('transcript', transcript);
 
-                // 2. Real-time Intent Check (Debounce in prod)
+                // 2. Real-time Intent Check
                 const analysis = await classifyIntent(transcript);
-                if (analysis.intent !== 'unknown') {
-                    io.emit('insight', analysis);
+
+                if (analysis.intent && analysis.intent !== 'unknown') {
+                    const isUrgent = analysis.urgency === 'high' || analysis.urgency === 'critical';
+
+                    const insightPayload = {
+                        type: isUrgent ? 'red_card' : 'info',
+                        title: isUrgent ? `URGENT: ${analysis.intent.toUpperCase()}` : `Intent: ${analysis.intent}`,
+                        message: analysis.summary || `Detected intent: ${analysis.intent}`,
+                        data: { confidence: analysis.confidence, urgency: analysis.urgency }
+                    };
+
+                    io.emit('insight', insightPayload);
                 }
             }
         },

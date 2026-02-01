@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { fetchCallHistory } from '../services/api';
 import Layout from '../components/Layout/Layout';
+
+
 
 const History = () => {
     const [calls, setCalls] = useState([]);
 
     useEffect(() => {
-        // Fetch from backend (placeholder endpoint)
-        // axios.get('http://localhost:5000/api/calls/history').then(res => setCalls(res.data));
-
-        // Mock Data for UI
-        setCalls([
-            { id: 1, caller: "+15550123", intent: "support", duration: "2m 30s", date: "2023-10-27 10:30 AM", sentiment: "Neutral" },
-            { id: 2, caller: "+15550456", intent: "sales", duration: "5m 12s", date: "2023-10-27 11:15 AM", sentiment: "Positive" },
-            { id: 3, caller: "+15550789", intent: "billing", duration: "1m 45s", date: "2023-10-27 12:00 PM", sentiment: "Negative" },
-        ]);
+        const loadHistory = async () => {
+            const data = await fetchCallHistory();
+            if (data && data.length > 0) {
+                setCalls(data);
+            } else {
+                // Keep mock for demo if backend is empty
+                setCalls([
+                    { id: 1, caller: "+15550123", intent: "support", duration: "2m 30s", date: "2023-10-27 10:30 AM", sentiment: "Neutral" },
+                    { id: 2, caller: "+15550456", intent: "sales", duration: "5m 12s", date: "2023-10-27 11:15 AM", sentiment: "Positive" }
+                ]);
+            }
+        };
+        loadHistory();
     }, []);
 
     return (
@@ -44,7 +50,7 @@ const History = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`text-xs font-bold ${call.sentiment === 'Positive' ? 'text-green-400' :
-                                                call.sentiment === 'Negative' ? 'text-red-400' : 'text-yellow-400'
+                                            call.sentiment === 'Negative' ? 'text-red-400' : 'text-yellow-400'
                                             }`}>
                                             {call.sentiment}
                                         </span>

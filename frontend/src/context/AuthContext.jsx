@@ -8,8 +8,11 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
+        // Attempt to get session (works for real supabase or returns null for mock)
+        supabase.auth.getSession().then(({ data }) => {
+            if (data && data.session) {
+                setSession(data.session);
+            }
             setLoading(false);
         });
 
@@ -21,14 +24,25 @@ export const AuthProvider = ({ children }) => {
         return () => subscription.unsubscribe();
     }, []);
 
+    const login = async (email) => {
+        // Mock Login: Manually set a session object
+        const mockSession = {
+            user: { email: email || 'demo@neurcall.ai', id: 'mock-user-id' },
+            access_token: 'mock-token'
+        };
+        setSession(mockSession);
+    };
+
     const signOut = async () => {
         await supabase.auth.signOut();
+        setSession(null);
     };
 
     const value = {
         session,
         loading,
         user: session?.user,
+        login, // Exported for Login.jsx
         signOut
     };
 
